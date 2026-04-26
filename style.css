@@ -204,21 +204,35 @@ body {
 }
 
 .signature-preview-container {
-  margin-top: 15px;
+  margin-top: 4px;
   text-align: center;
   background: rgba(0,0,0,0.2);
   border-radius: 8px;
   padding: 10px;
   min-height: 80px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 
-.signature-preview-container img {
+.preview-label {
+  font-size: 0.9rem;
+  margin-top: 20px;
+  margin-bottom: 4px;
+  color: var(--text-muted);
+  font-weight: 500;
+  display: block;
+}
+
+#signature-preview-img {
   max-width: 100%;
-  max-height: 100px;
+  max-height: 150px;
   object-fit: contain;
+  background-color: #ffffff;
+  border-radius: 4px;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
 }
 
 .viewer-panel {
