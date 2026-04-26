@@ -1,0 +1,321 @@
+:root {
+  --bg-color: #0a0a0a;
+  --panel-bg: #171717;
+  --text-main: #fafafa;
+  --text-muted: #a3a3a3;
+  --primary-color: #ffffff;
+  --primary-hover: #e5e5e5;
+  --primary-text: #0a0a0a;
+  --secondary-color: #262626;
+  --secondary-hover: #404040;
+  --action-color: #fafafa;
+  --action-hover: #e5e5e5;
+  --action-text: #0a0a0a;
+  --border-color: #262626;
+  --border-radius: 8px;
+  --shadow: 0 4px 20px -2px rgb(0 0 0 / 0.5);
+  --font-family: 'Inter', sans-serif;
+  --canvas-bg: #cbd5e1;
+}
+
+[data-theme="light"] {
+  --bg-color: #f5f5f5;
+  --panel-bg: #ffffff;
+  --text-main: #0a0a0a;
+  --text-muted: #525252;
+  --primary-color: #0a0a0a;
+  --primary-hover: #262626;
+  --primary-text: #ffffff;
+  --secondary-color: #e5e5e5;
+  --secondary-hover: #d4d4d4;
+  --action-color: #0a0a0a;
+  --action-hover: #262626;
+  --action-text: #ffffff;
+  --border-color: #e5e5e5;
+  --shadow: 0 4px 10px -2px rgb(0 0 0 / 0.05);
+  --canvas-bg: #e5e5e5;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.app-container {
+  max-width: 1200px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.app-header {
+  padding: 20px;
+  background: var(--panel-bg);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  display: flex;
+  justify-content: center;
+}
+
+.header-content {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-content > div {
+  text-align: left;
+}
+
+.app-header h1 {
+  font-family: 'Great Vibes', cursive;
+  font-size: 4rem;
+  font-weight: 400;
+  color: var(--text-main);
+  letter-spacing: 0;
+  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.app-header p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.app-main {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+}
+
+@media (max-width: 768px) {
+  .app-main {
+    flex-direction: column;
+  }
+}
+
+.controls-panel {
+  flex: 0 0 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.upload-section, .action-section {
+  background: var(--panel-bg);
+  padding: 20px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+}
+
+.upload-section h2, .action-section h2 {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.file-input-wrapper {
+  position: relative;
+  overflow: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+.file-input-wrapper input[type="file"] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  cursor: pointer;
+  height: 100%;
+  width: 100%;
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-family);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.primary-btn {
+  background-color: var(--primary-color);
+  color: var(--primary-text);
+}
+
+.primary-btn:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+
+.secondary-btn {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+.secondary-btn:hover:not(:disabled) {
+  background-color: var(--secondary-hover);
+}
+
+.action-btn {
+  background-color: var(--action-color);
+  color: var(--action-text);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.action-btn:hover:not(:disabled) {
+  background-color: var(--action-hover);
+}
+
+.filename-display {
+  display: block;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+.signature-preview-container {
+  margin-top: 15px;
+  text-align: center;
+  background: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  padding: 10px;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.signature-preview-container img {
+  max-width: 100%;
+  max-height: 100px;
+  object-fit: contain;
+}
+
+.viewer-panel {
+  flex: 1;
+  background: var(--panel-bg);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.viewer-toolbar {
+  padding: 15px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.icon-btn {
+  background: var(--secondary-color);
+  color: var(--text-main);
+  padding: 8px 15px;
+  width: auto;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.icon-btn:hover:not(:disabled) {
+  background: var(--secondary-hover);
+}
+
+.page-info {
+  font-size: 0.95rem;
+  font-weight: 500;
+  min-width: 100px;
+  text-align: center;
+}
+
+.viewer-placeholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+}
+
+.canvas-container {
+  position: relative;
+  flex: 1;
+  overflow: auto;
+  padding: 20px;
+  background-color: var(--canvas-bg);
+}
+
+#pdf-render-canvas {
+  box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.5);
+  max-width: none; /* Let canvas decide based on scale */
+  margin: 0 auto;
+  display: block;
+}
+
+/* Draggable and resizable signature overlay */
+#signature-overlay {
+  position: absolute;
+  cursor: grab;
+  border: 1px dashed var(--text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  box-sizing: border-box;
+  user-select: none;
+}
+
+#signature-overlay:active {
+  cursor: grabbing;
+}
+
+#signature-overlay img {
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Let wrapper handle drag */
+  display: block;
+}
+
+.resize-handle {
+  width: 15px;
+  height: 15px;
+  background: var(--text-main);
+  border-radius: 50%;
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  cursor: nwse-resize;
+  border: 2px solid var(--bg-color);
+}

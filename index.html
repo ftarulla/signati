@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Signati - Web PDF Signer</title>
+    <meta name="description" content="A simple, elegant client-side application for signing PDF documents." />
+    <link rel="stylesheet" href="./style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div class="app-container">
+      <header class="app-header">
+        <div class="header-content">
+          <div>
+            <h1>Signati</h1>
+            <p>Easily sign your PDFs</p>
+          </div>
+          <button id="theme-toggle" class="btn icon-btn" title="Toggle Theme">🌓</button>
+        </div>
+      </header>
+
+      <main class="app-main">
+        <div class="controls-panel">
+          <section class="upload-section">
+            <h2>1. Upload PDF</h2>
+            <div class="file-input-wrapper">
+              <input type="file" id="pdf-upload" accept="application/pdf" />
+              <label for="pdf-upload" class="btn primary-btn">Select PDF Document</label>
+            </div>
+            <span id="pdf-filename" class="filename-display"></span>
+          </section>
+
+          <section class="upload-section">
+            <h2>2. Your Signature</h2>
+            <div class="file-input-wrapper">
+              <input type="file" id="signature-upload" accept="image/png, image/jpeg" />
+              <label for="signature-upload" class="btn secondary-btn">Upload Signature (Image)</label>
+            </div>
+            <span id="signature-filename" class="filename-display"></span>
+            <div class="signature-preview-container">
+                <img id="signature-preview-img" alt="Signature preview" style="display: none;" />
+            </div>
+          </section>
+
+          <section class="action-section">
+            <h2>3. Download</h2>
+            <button id="download-btn" class="btn action-btn" disabled>Download Signed PDF</button>
+          </section>
+        </div>
+
+        <div class="viewer-panel">
+          <div class="viewer-toolbar">
+            <button id="prev-page" class="btn icon-btn" disabled>← Prev</button>
+            <span class="page-info">Page: <span id="page-num">0</span> / <span id="page-count">0</span></span>
+            <button id="next-page" class="btn icon-btn" disabled>Next →</button>
+          </div>
+          <div class="canvas-container" id="canvas-container">
+            <!-- The PDF canvas will be rendered here -->
+            <canvas id="pdf-render-canvas"></canvas>
+            
+            <!-- The signature overlay container will be injected here -->
+            <div id="signature-overlay" class="draggable resizable" style="display: none; top: 50px; left: 50px; width: 150px;">
+              <img id="signature-overlay-img" src="" alt="Signature Overlay" />
+              <div class="resize-handle"></div>
+            </div>
+          </div>
+          <div class="viewer-placeholder" id="viewer-placeholder">
+            <p>Upload a PDF to view and sign</p>
+          </div>
+        </div>
+      </main>
+    </div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
