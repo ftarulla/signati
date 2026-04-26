@@ -43,6 +43,7 @@
             <div class="signature-preview-container">
                 <img id="signature-preview-img" alt="Signature preview" style="display: none;" />
             </div>
+            <button id="sign-page-btn" class="btn action-btn" style="display: none; margin-top: 15px; width: 100%;">Sign Current Page</button>
           </section>
 
           <section class="action-section">
@@ -63,6 +64,7 @@
             
             <!-- The signature overlay container will be injected here -->
             <div id="signature-overlay" class="draggable resizable" style="display: none; top: 50px; left: 50px; width: 150px;">
+              <button id="remove-signature-btn" class="remove-signature-btn" title="Remove from page">&times;</button>
               <img id="signature-overlay-img" src="" alt="Signature Overlay" />
               <div class="resize-handle"></div>
             </div>
@@ -73,6 +75,21 @@
         </div>
       </main>
     </div>
+
+    <dialog id="crop-modal" class="modal">
+      <div class="modal-content">
+        <h3>Crop Signature</h3>
+        <p>Remove excess whitespace so it's easier to position.</p>
+        <div class="crop-container">
+          <img id="crop-image" src="" alt="To crop" />
+        </div>
+        <div class="modal-actions">
+          <button id="cancel-crop-btn" class="btn secondary-btn">Cancel</button>
+          <button id="apply-crop-btn" class="btn action-btn">Apply Crop</button>
+        </div>
+      </div>
+    </dialog>
+
     <script type="module" src="./main.js"></script>
   </body>
 </html>

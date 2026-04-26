@@ -319,3 +319,93 @@ body {
   cursor: nwse-resize;
   border: 2px solid var(--bg-color);
 }
+
+/* Modal Styles */
+.modal {
+  margin: auto;
+  padding: 0;
+  border: none;
+  border-radius: var(--border-radius);
+  background: var(--panel-bg);
+  box-shadow: 0 10px 40px -10px rgb(0 0 0 / 0.8);
+  color: var(--text-main);
+  max-width: 90vw;
+  width: 500px;
+}
+
+.modal::backdrop {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.modal-content h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.modal-content p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.crop-container {
+  max-height: 50vh;
+  width: 100%;
+  background: var(--canvas-bg);
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.crop-container img {
+  max-width: 100%;
+  max-height: 50vh;
+  display: block;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.modal-actions .btn {
+  width: auto;
+  min-width: 120px;
+}
+
+.remove-signature-btn {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: var(--bg-color);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+  box-shadow: var(--shadow);
+  padding: 0;
+  line-height: 1;
+}
+
+.remove-signature-btn:hover {
+  background: var(--secondary-hover);
+}

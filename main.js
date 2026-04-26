@@ -1,5 +1,7 @@
 import * as pdfjsLib from 'pdfjs-dist';
 import { PDFDocument } from 'pdf-lib';
+import Cropper from 'cropperjs';
+import 'cropperjs/dist/cropper.css';
 
 // Set worker source for PDF.js
 pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
@@ -18,6 +20,7 @@ let ctx = canvas.getContext('2d');
 let rawPdfBytes = null;
 let signatureBase64 = null; // Will store the base64 string
 let signatureImage = null; // For pdf-lib to embed
+let signaturesByPage = {}; // { pageNum: { left, top, width } }
 
 // DOM Elements
 const pdfUpload = document.getElementById('pdf-upload');
@@ -35,6 +38,13 @@ const canvasContainer = document.getElementById('canvas-container');
 const signatureOverlay = document.getElementById('signature-overlay');
 const signatureOverlayImg = document.getElementById('signature-overlay-img');
 const themeToggleBtn = document.getElementById('theme-toggle');
+const cropModal = document.getElementById('crop-modal');
+const cropImage = document.getElementById('crop-image');
+const cancelCropBtn = document.getElementById('cancel-crop-btn');
+const applyCropBtn = document.getElementById('apply-crop-btn');
+const signPageBtn = document.getElementById('sign-page-btn');
+const removeSignatureBtn = document.getElementById('remove-signature-btn');
+let cropperInstance = null;
 
 // Theme Management
 const currentTheme = localStorage.getItem('signati_theme') || 'dark';
@@ -58,6 +68,7 @@ function loadPersistedSignature() {
     
     // Set overlay image but don't show yet
     signatureOverlayImg.src = savedSig;
+    signPageBtn.style.display = 'block';
     
     // Update button state
     updateDownloadButtonState();
@@ -91,7 +102,11 @@ pdfUpload.addEventListener('change', async (e) => {
     
     // Show signature overlay if we have a signature
     if (signatureBase64) {
-      signatureOverlay.style.display = 'block';
+      signPageBtn.style.display = 'block';
+      if (!signaturesByPage[pageNum]) {
+        signaturesByPage[pageNum] = { left: '50px', top: '50px', width: '150px' };
+      }
+      loadSignatureState();
     }
     
     updateDownloadButtonState();
@@ -143,16 +158,45 @@ function queueRenderPage(num) {
   }
 }
 
+function saveSignatureState() {
+  if (signatureOverlay.style.display !== 'none') {
+    signaturesByPage[pageNum] = {
+      left: signatureOverlay.style.left || '50px',
+      top: signatureOverlay.style.top || '50px',
+      width: signatureOverlay.style.width || '150px'
+    };
+  } else {
+    delete signaturesByPage[pageNum];
+  }
+}
+
+function loadSignatureState() {
+  const state = signaturesByPage[pageNum];
+  if (state && signatureBase64) {
+    signatureOverlay.style.display = 'block';
+    signatureOverlay.style.left = state.left;
+    signatureOverlay.style.top = state.top;
+    signatureOverlay.style.width = state.width;
+  } else {
+    signatureOverlay.style.display = 'none';
+  }
+  updateDownloadButtonState();
+}
+
 prevBtn.addEventListener('click', () => {
   if (pageNum <= 1) return;
+  saveSignatureState();
   pageNum--;
   queueRenderPage(pageNum);
+  loadSignatureState();
 });
 
 nextBtn.addEventListener('click', () => {
   if (pageNum >= pdfDoc.numPages) return;
+  saveSignatureState();
   pageNum++;
   queueRenderPage(pageNum);
+  loadSignatureState();
 });
 
 // Event Listeners for Signature
@@ -164,7 +208,51 @@ signatureUpload.addEventListener('change', (e) => {
   
   const reader = new FileReader();
   reader.onload = (event) => {
-    signatureBase64 = event.target.result;
+    // Open cropper modal
+    cropImage.src = event.target.result;
+    cropModal.showModal();
+    
+    if (cropperInstance) {
+      cropperInstance.destroy();
+    }
+    
+    cropperInstance = new Cropper(cropImage, {
+      viewMode: 1,
+      dragMode: 'crop',
+      autoCropArea: 0.9,
+      restore: false,
+      guides: true,
+      center: true,
+      highlight: false,
+      cropBoxMovable: true,
+      cropBoxResizable: true,
+      toggleDragModeOnDblclick: false,
+    });
+  };
+  reader.readAsDataURL(file);
+  
+  e.target.value = ''; // allow uploading same file again
+});
+
+cancelCropBtn.addEventListener('click', () => {
+  cropModal.close();
+  if (cropperInstance) {
+    cropperInstance.destroy();
+    cropperInstance = null;
+  }
+});
+
+applyCropBtn.addEventListener('click', () => {
+  try {
+    if (!cropperInstance) return;
+    
+    const canvas = cropperInstance.getCroppedCanvas();
+    if (!canvas) {
+      alert("Cropper is not ready yet. Please try again in a moment.");
+      return;
+    }
+    
+    signatureBase64 = canvas.toDataURL('image/png');
     
     // Persist to localStorage
     try {
@@ -177,17 +265,45 @@ signatureUpload.addEventListener('change', (e) => {
     signaturePreviewImg.style.display = 'block';
     
     signatureOverlayImg.src = signatureBase64;
+    signPageBtn.style.display = 'block';
     if (pdfDoc) {
-      signatureOverlay.style.display = 'block';
+      if (!signaturesByPage[pageNum]) {
+        signaturesByPage[pageNum] = { left: '50px', top: '50px', width: '150px' };
+      }
+      loadSignatureState();
     }
     
     updateDownloadButtonState();
-  };
-  reader.readAsDataURL(file);
+    
+    cropModal.close();
+    cropperInstance.destroy();
+    cropperInstance = null;
+  } catch (error) {
+    console.error(error);
+    alert("Error applying crop: " + error.message);
+  }
+});
+
+signPageBtn.addEventListener('click', () => {
+  if (!signatureBase64 || !pdfDoc) return;
+  signatureOverlay.style.display = 'block';
+  signatureOverlay.style.left = '50px';
+  signatureOverlay.style.top = '50px';
+  signatureOverlay.style.width = '150px';
+  signaturesByPage[pageNum] = { left: '50px', top: '50px', width: '150px' };
+  updateDownloadButtonState();
+});
+
+removeSignatureBtn.addEventListener('click', (e) => {
+  e.stopPropagation(); // prevent dragging
+  signatureOverlay.style.display = 'none';
+  delete signaturesByPage[pageNum];
+  updateDownloadButtonState();
 });
 
 function updateDownloadButtonState() {
-  if (pdfDoc && signatureBase64) {
+  saveSignatureState();
+  if (pdfDoc && signatureBase64 && Object.keys(signaturesByPage).length > 0) {
     downloadBtn.disabled = false;
   } else {
     downloadBtn.disabled = true;
@@ -248,13 +364,19 @@ document.addEventListener('mouseup', () => {
 // Apply Signature and Download
 downloadBtn.addEventListener('click', async () => {
   try {
+    saveSignatureState();
+    
+    if (Object.keys(signaturesByPage).length === 0) {
+      alert("Please sign at least one page.");
+      return;
+    }
+
     downloadBtn.disabled = true;
     downloadBtn.textContent = 'Processing...';
 
-    // Load PDF with pdf-lib
-    const pdfLibDoc = await PDFDocument.load(rawPdfBytes);
+    // Load PDF with pdf-lib (Use slice(0) to prevent detached ArrayBuffer crash)
+    const pdfLibDoc = await PDFDocument.load(rawPdfBytes.slice(0));
     const pages = pdfLibDoc.getPages();
-    const pageToSign = pages[pageNum - 1]; // 0-indexed in pdf-lib
     
     // Embed signature image
     let embeddedImage;
@@ -264,37 +386,37 @@ downloadBtn.addEventListener('click', async () => {
       embeddedImage = await pdfLibDoc.embedJpg(signatureBase64);
     }
     
-    // Calculate coordinates and scale based on canvas vs pdf-lib page size
-    // Canvas might be centered in the container via flex, so we need coordinates relative to the canvas itself
-    const canvasRect = canvas.getBoundingClientRect();
-    const overlayRect = signatureOverlay.getBoundingClientRect();
-    
-    // Relative coordinates to the canvas (which represents the PDF page)
-    const relX = overlayRect.left - canvasRect.left;
-    const relY = overlayRect.top - canvasRect.top;
-    
-    // pdf-lib origin is bottom-left, canvas origin is top-left
-    const pdfWidth = pageToSign.getWidth();
-    const pdfHeight = pageToSign.getHeight();
-    
-    // Scale factor between canvas size and actual PDF size
-    const scaleX = pdfWidth / canvasRect.width;
-    const scaleY = pdfHeight / canvasRect.height;
-    
-    const finalWidth = overlayRect.width * scaleX;
-    const finalHeight = (embeddedImage.height / embeddedImage.width) * finalWidth; // Keep aspect ratio
-    
-    // Convert canvas Y to pdf-lib Y (invert axis)
-    const finalX = relX * scaleX;
-    const finalY = pdfHeight - (relY * scaleY) - finalHeight;
+    for (const [pNumStr, state] of Object.entries(signaturesByPage)) {
+      const pNum = parseInt(pNumStr, 10);
+      const pageToSign = pages[pNum - 1];
+      if (!pageToSign) continue;
+      
+      const overlayLeft = parseFloat(state.left);
+      const overlayTop = parseFloat(state.top);
+      const overlayWidth = parseFloat(state.width);
+      
+      const relX = overlayLeft - canvas.offsetLeft;
+      const relY = overlayTop - canvas.offsetTop;
+      
+      const pdfWidth = pageToSign.getWidth();
+      const pdfHeight = pageToSign.getHeight();
+      
+      const scaleX = pdfWidth / canvas.offsetWidth;
+      const scaleY = pdfHeight / canvas.offsetHeight;
+      
+      const finalWidth = overlayWidth * scaleX;
+      const finalHeight = (embeddedImage.height / embeddedImage.width) * finalWidth;
+      
+      const finalX = relX * scaleX;
+      const finalY = pdfHeight - (relY * scaleY) - finalHeight;
 
-    // Draw the image onto the page
-    pageToSign.drawImage(embeddedImage, {
-      x: finalX,
-      y: finalY,
-      width: finalWidth,
-      height: finalHeight,
-    });
+      pageToSign.drawImage(embeddedImage, {
+        x: finalX,
+        y: finalY,
+        width: finalWidth,
+        height: finalHeight,
+      });
+    }
 
     // Serialize and download
     const pdfBytes = await pdfLibDoc.save();
@@ -313,7 +435,11 @@ downloadBtn.addEventListener('click', async () => {
     URL.revokeObjectURL(url);
   } catch (error) {
     console.error('Error applying signature:', error);
-    alert('An error occurred while applying the signature.');
+    if (error.message && error.message.includes('encrypted')) {
+      alert('This PDF is encrypted or protected. Signati cannot modify protected documents. Please unlock the PDF before signing.');
+    } else {
+      alert('An error occurred while applying the signature: ' + error.message);
+    }
   } finally {
     downloadBtn.textContent = 'Download Signed PDF';
     downloadBtn.disabled = false;
