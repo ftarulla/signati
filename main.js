@@ -326,27 +326,46 @@ function updateDownloadButtonState() {
 let isDragging = false;
 let startX, startY, initialLeft, initialTop;
 
-signatureOverlay.addEventListener('mousedown', (e) => {
+function getPointerPos(e) {
+  if (e.touches && e.touches.length > 0) {
+    return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }
+  return { x: e.clientX, y: e.clientY };
+}
+
+function handleDragStart(e) {
   if (e.target.classList.contains('resize-handle')) return; // handled by resize
+  e.preventDefault();
   isDragging = true;
-  startX = e.clientX;
-  startY = e.clientY;
+  const pos = getPointerPos(e);
+  startX = pos.x;
+  startY = pos.y;
   initialLeft = signatureOverlay.offsetLeft;
   initialTop = signatureOverlay.offsetTop;
-});
+}
 
-document.addEventListener('mousemove', (e) => {
+function handleDragMove(e) {
   if (isDragging) {
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
+    e.preventDefault();
+    const pos = getPointerPos(e);
+    const dx = pos.x - startX;
+    const dy = pos.y - startY;
     signatureOverlay.style.left = `${initialLeft + dx}px`;
     signatureOverlay.style.top = `${initialTop + dy}px`;
   }
-});
+}
 
-document.addEventListener('mouseup', () => {
+function handleDragEnd() {
   isDragging = false;
-});
+}
+
+signatureOverlay.addEventListener('mousedown', handleDragStart);
+document.addEventListener('mousemove', handleDragMove);
+document.addEventListener('mouseup', handleDragEnd);
+
+signatureOverlay.addEventListener('touchstart', handleDragStart, { passive: false });
+document.addEventListener('touchmove', handleDragMove, { passive: false });
+document.addEventListener('touchend', handleDragEnd);
 
 // Resizing Logic for the Signature Overlay
 const resizeHandle = signatureOverlay.querySelector('.resize-handle');
@@ -354,24 +373,35 @@ let isResizing = false;
 let initialWidth;
 let resizeStartX;
 
-resizeHandle.addEventListener('mousedown', (e) => {
+function handleResizeStart(e) {
   e.stopPropagation();
+  e.preventDefault();
   isResizing = true;
   initialWidth = signatureOverlay.offsetWidth;
-  resizeStartX = e.clientX;
-});
+  resizeStartX = getPointerPos(e).x;
+}
 
-document.addEventListener('mousemove', (e) => {
+function handleResizeMove(e) {
   if (isResizing) {
-    const dx = e.clientX - resizeStartX;
+    e.preventDefault();
+    const dx = getPointerPos(e).x - resizeStartX;
     const newWidth = Math.max(50, initialWidth + dx); // min width 50px
     signatureOverlay.style.width = `${newWidth}px`;
   }
-});
+}
 
-document.addEventListener('mouseup', () => {
+function handleResizeEnd() {
   isResizing = false;
-});
+}
+
+resizeHandle.addEventListener('mousedown', handleResizeStart);
+document.addEventListener('mousemove', handleResizeMove);
+document.addEventListener('mouseup', handleResizeEnd);
+
+resizeHandle.addEventListener('touchstart', handleResizeStart, { passive: false });
+document.addEventListener('touchmove', handleResizeMove, { passive: false });
+document.addEventListener('touchend', handleResizeEnd);
+
 
 // Apply Signature and Download
 downloadBtn.addEventListener('click', async () => {
