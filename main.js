@@ -44,6 +44,7 @@ const cancelCropBtn = document.getElementById('cancel-crop-btn');
 const applyCropBtn = document.getElementById('apply-crop-btn');
 const signPageBtn = document.getElementById('sign-page-btn');
 const removeSignatureBtn = document.getElementById('remove-signature-btn');
+const viewerToolbar = document.querySelector('.viewer-toolbar');
 let cropperInstance = null;
 
 // Theme Management
@@ -95,6 +96,8 @@ pdfUpload.addEventListener('change', async (e) => {
     pdfDoc = await loadingTask.promise;
     pageCountSpan.textContent = pdfDoc.numPages;
     viewerPlaceholder.style.display = 'none';
+    viewerToolbar.style.display = 'flex';
+    canvasContainer.style.display = 'block';
     
     // Render first page
     pageNum = 1;
