@@ -8,6 +8,7 @@ A simple, elegant client-side application for signing PDF documents directly in 
 
 - **Upload & view PDFs** with multi-page navigation
 - **Upload a signature image** (PNG / JPEG) and crop it before use
+- **Draw your signature** freehand using mouse or finger/stylus (touch devices)
 - **Drag & resize** the signature overlay to position it precisely on any page
 - **Sign multiple pages** independently — each page retains its own signature placement
 - **Download** the final signed PDF with the signature embedded
@@ -70,7 +71,9 @@ http://localhost:5173
 ## Usage
 
 1. **Upload a PDF** — Click *"Select PDF Document"* and choose a `.pdf` file.
-2. **Upload your signature** — Click *"Upload Signature (Image)"* and select a PNG or JPEG image of your signature. A crop dialog will appear so you can trim excess whitespace.
+2. **Provide your signature** — You have two options:
+   - *Upload an image* — Click *"Upload Signature (Image)"* and select a PNG or JPEG. A crop dialog will appear so you can trim whitespace.
+   - *Draw it* — Click *"✏️ Draw Signature"* to open a drawing canvas. Sign with your mouse (desktop) or finger (phone/tablet), then hit *Apply*. The signature is auto-trimmed and made transparent.
 3. **Place the signature** — Click *"Sign Current Page"* to add the signature overlay to the current page. Drag it to position and use the bottom-right handle to resize.
 4. **Navigate pages** — Use the *← Prev / Next →* buttons to move between pages. Each page's signature position is saved independently.
 5. **Remove a signature** — Click the **×** button on the signature overlay to remove it from the current page.

@@ -47,6 +47,15 @@ const removeSignatureBtn = document.getElementById('remove-signature-btn');
 const viewerToolbar = document.querySelector('.viewer-toolbar');
 let cropperInstance = null;
 
+// Draw Signature DOM Elements
+const drawSignatureBtn = document.getElementById('draw-signature-btn');
+const drawModal = document.getElementById('draw-modal');
+const drawCanvas = document.getElementById('draw-canvas');
+const drawCtx = drawCanvas.getContext('2d');
+const clearDrawBtn = document.getElementById('clear-draw-btn');
+const cancelDrawBtn = document.getElementById('cancel-draw-btn');
+const applyDrawBtn = document.getElementById('apply-draw-btn');
+
 // Theme Management
 const currentTheme = localStorage.getItem('signati_theme') || 'dark';
 document.documentElement.setAttribute('data-theme', currentTheme);
@@ -447,4 +456,178 @@ downloadBtn.addEventListener('click', async () => {
     downloadBtn.textContent = 'Download Signed PDF';
     downloadBtn.disabled = false;
   }
+});
+
+// ─── Draw Signature Feature ───────────────────────────────────────────────────
+
+let isDrawing = false;
+
+function clearDrawCanvas() {
+  drawCtx.fillStyle = '#ffffff';
+  drawCtx.fillRect(0, 0, drawCanvas.width, drawCanvas.height);
+}
+
+function initDrawCanvas() {
+  // Scale canvas for sharp rendering on HiDPI screens
+  const rect = drawCanvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  drawCanvas.width = rect.width * dpr;
+  drawCanvas.height = rect.height * dpr;
+  drawCtx.scale(dpr, dpr);
+
+  clearDrawCanvas();
+
+  drawCtx.strokeStyle = '#1a1a1a';
+  drawCtx.lineWidth = 2.5;
+  drawCtx.lineCap = 'round';
+  drawCtx.lineJoin = 'round';
+}
+
+function getDrawPos(e) {
+  const rect = drawCanvas.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return {
+    x: clientX - rect.left,
+    y: clientY - rect.top,
+  };
+}
+
+function startDraw(e) {
+  e.preventDefault();
+  isDrawing = true;
+  const pos = getDrawPos(e);
+  drawCtx.beginPath();
+  drawCtx.moveTo(pos.x, pos.y);
+}
+
+function draw(e) {
+  if (!isDrawing) return;
+  e.preventDefault();
+  const pos = getDrawPos(e);
+  drawCtx.lineTo(pos.x, pos.y);
+  drawCtx.stroke();
+}
+
+function stopDraw(e) {
+  if (!isDrawing) return;
+  e.preventDefault();
+  isDrawing = false;
+}
+
+// Mouse events
+drawCanvas.addEventListener('mousedown', startDraw);
+drawCanvas.addEventListener('mousemove', draw);
+drawCanvas.addEventListener('mouseup', stopDraw);
+drawCanvas.addEventListener('mouseleave', stopDraw);
+
+// Touch events
+drawCanvas.addEventListener('touchstart', startDraw, { passive: false });
+drawCanvas.addEventListener('touchmove', draw, { passive: false });
+drawCanvas.addEventListener('touchend', stopDraw);
+drawCanvas.addEventListener('touchcancel', stopDraw);
+
+// Open draw modal
+drawSignatureBtn.addEventListener('click', () => {
+  drawModal.showModal();
+  // Delay init so the modal layout is computed before we measure the canvas
+  requestAnimationFrame(() => initDrawCanvas());
+});
+
+// Clear
+clearDrawBtn.addEventListener('click', () => {
+  clearDrawCanvas();
+});
+
+// Cancel
+cancelDrawBtn.addEventListener('click', () => {
+  drawModal.close();
+});
+
+// Apply drawn signature
+applyDrawBtn.addEventListener('click', () => {
+  // Check if the canvas is blank (still all white)
+  const imageData = drawCtx.getImageData(0, 0, drawCanvas.width, drawCanvas.height);
+  const data = imageData.data;
+  let isBlank = true;
+  for (let i = 0; i < data.length; i += 4) {
+    // If any pixel is not white, the canvas has content
+    if (data[i] < 250 || data[i + 1] < 250 || data[i + 2] < 250) {
+      isBlank = false;
+      break;
+    }
+  }
+
+  if (isBlank) {
+    alert('Please draw a signature before applying.');
+    return;
+  }
+
+  // Auto-trim whitespace: find bounding box of non-white pixels
+  const w = drawCanvas.width;
+  const h = drawCanvas.height;
+  let minX = w, minY = h, maxX = 0, maxY = 0;
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const idx = (y * w + x) * 4;
+      if (data[idx] < 250 || data[idx + 1] < 250 || data[idx + 2] < 250) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+
+  // Add a small padding around the trimmed area
+  const pad = 10;
+  minX = Math.max(0, minX - pad);
+  minY = Math.max(0, minY - pad);
+  maxX = Math.min(w - 1, maxX + pad);
+  maxY = Math.min(h - 1, maxY + pad);
+
+  const trimW = maxX - minX + 1;
+  const trimH = maxY - minY + 1;
+
+  // Draw trimmed region to a temp canvas with transparent background
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = trimW;
+  tempCanvas.height = trimH;
+  const tempCtx = tempCanvas.getContext('2d');
+
+  // Copy the trimmed area — make white pixels transparent
+  const trimData = drawCtx.getImageData(minX, minY, trimW, trimH);
+  const td = trimData.data;
+  for (let i = 0; i < td.length; i += 4) {
+    if (td[i] >= 250 && td[i + 1] >= 250 && td[i + 2] >= 250) {
+      td[i + 3] = 0; // make white transparent
+    }
+  }
+  tempCtx.putImageData(trimData, 0, 0);
+
+  signatureBase64 = tempCanvas.toDataURL('image/png');
+
+  // Persist to localStorage
+  try {
+    localStorage.setItem('signati_signature', signatureBase64);
+  } catch (err) {
+    console.warn('Could not save signature to localStorage (might be too large).', err);
+  }
+
+  signaturePreviewImg.src = signatureBase64;
+  signaturePreviewImg.style.display = 'block';
+  signatureFilename.textContent = 'Drawn signature';
+
+  signatureOverlayImg.src = signatureBase64;
+  signPageBtn.style.display = 'block';
+  if (pdfDoc) {
+    if (!signaturesByPage[pageNum]) {
+      signaturesByPage[pageNum] = { left: '50px', top: '50px', width: '150px' };
+    }
+    loadSignatureState();
+  }
+
+  updateDownloadButtonState();
+  drawModal.close();
 });
