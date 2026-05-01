@@ -25,19 +25,10 @@
       <main class="app-main">
         <div class="controls-panel">
           <section class="upload-section">
-            <h2>1. Upload PDF</h2>
-            <div class="file-input-wrapper">
-              <input type="file" id="pdf-upload" accept="application/pdf" />
-              <label for="pdf-upload" class="btn primary-btn">Select PDF Document</label>
-            </div>
-            <span id="pdf-filename" class="filename-display"></span>
-          </section>
-
-          <section class="upload-section">
-            <h2>2. Your Signature</h2>
+            <h2>1. Your Signature</h2>
             <div class="file-input-wrapper">
               <input type="file" id="signature-upload" accept="image/png, image/jpeg" />
-              <label for="signature-upload" class="btn secondary-btn">Upload Signature (Image)</label>
+              <label for="signature-upload" class="btn secondary-btn">Upload Image</label>
             </div>
             <span id="signature-filename" class="filename-display"></span>
             <div class="or-divider"><span>or</span></div>
@@ -46,20 +37,27 @@
             <div class="signature-preview-container">
                 <img id="signature-preview-img" alt="Signature preview" style="display: none;" />
             </div>
-            <button id="sign-page-btn" class="btn action-btn" style="display: none; margin-top: 15px; width: 100%;">Sign Current Page</button>
           </section>
 
-          <section class="action-section">
-            <h2>3. Download</h2>
-            <button id="download-btn" class="btn action-btn" disabled>Download Signed PDF</button>
+          <section class="upload-section">
+            <h2>2. Upload PDF</h2>
+            <div class="file-input-wrapper">
+              <input type="file" id="pdf-upload" accept="application/pdf" />
+              <label for="pdf-upload" class="btn primary-btn">Select PDF Document</label>
+            </div>
+            <span id="pdf-filename" class="filename-display"></span>
           </section>
         </div>
 
         <div class="viewer-panel">
           <div class="viewer-toolbar" style="display: none;">
-            <button id="prev-page" class="btn icon-btn" disabled>← Prev</button>
-            <span class="page-info">Page: <span id="page-num">0</span> / <span id="page-count">0</span></span>
-            <button id="next-page" class="btn icon-btn" disabled>Next →</button>
+            <button id="sign-page-btn" class="btn action-btn toolbar-action-btn" style="display: none;">✍️ Sign Page</button>
+            <div class="toolbar-nav">
+              <button id="prev-page" class="btn icon-btn" disabled>← Prev</button>
+              <span class="page-info">Page: <span id="page-num">0</span> / <span id="page-count">0</span></span>
+              <button id="next-page" class="btn icon-btn" disabled>Next →</button>
+            </div>
+            <button id="download-btn" class="btn action-btn toolbar-action-btn" disabled>📥 Download</button>
           </div>
           <div class="canvas-container" id="canvas-container" style="display: none;">
             <!-- The PDF canvas will be rendered here -->
